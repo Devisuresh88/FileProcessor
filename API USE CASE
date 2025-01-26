@@ -1,0 +1,80 @@
+import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static io.restassured.RestAssured.*;
+
+
+public class RestAssuredExampleTest {
+
+ 
+    @Test
+    public void testGetRequest() {
+        // Set the base URI for the ReqRes API
+        RestAssured.baseURI = "https://reqres.in"; // Base URL of the API
+
+        // Send a GET request to /api/users/2 and capture the response as a string
+        String getResponse = given()
+                             .when()
+                             .get("/api/users/2")  // Fetch data for user 2
+                             .then()
+                             .statusCode(200)  // Ensure status code is 200 OK
+                             .extract().response().asString();  // Extract the response as a string
+
+        // Print the raw response body for debugging purposes
+        System.out.println("Response Body: " + getResponse);
+
+        // Parse the response JSON using JsonPath
+        JsonPath js1 = new JsonPath(getResponse);  // Create a JsonPath object to parse the response
+
+        // Extract the 'first_name' and 'last_name' fields from the JSON response
+        String fName = js1.getString("data.first_name");  // Extract first_name
+        String lName = js1.getString("data.last_name");  // Extract last_name
+
+        // Print extracted values for debugging
+        System.out.println("First Name: " + fName);
+        System.out.println("Last Name: " + lName);
+
+        // Assert that the extracted first_name is correct
+        assertEquals(fName, "Janet", "MyMessage1"); // Verify that the first name is 'Janet'
+    }
+
+    
+    @Test
+    public void testPostRequest() {
+        // Set the base URI for ReqRes API
+        RestAssured.baseURI = "https://reqres.in";
+        
+        // Corrected request body (add missing comma and corrected "name")
+        String requestBody = "{\n" +
+                             "    \"name\": \"morpheus\",\n" +
+                             "    \"job\": \"leader\",\n" +
+                             "    \"id\": \"31\",\n" +
+                             "    \"createdAt\": \"2025-01-26T07:37:06.666Z\"\n" +
+                             "}";
+
+        // Send POST request and extract the response as a string
+        String getResponse = given()
+                             .header("Content-Type", "application/json")
+                             .body(requestBody)
+                             .when()
+                             .post("/api/users")
+                             .then()
+                             .statusCode(201) // Expecting 201 Created
+                             .extract().response().asString();
+
+        // Print the response body for debugging
+        System.out.println("Response Body: " + getResponse);
+
+        // Use JsonPath to parse the response body
+        JsonPath js2 = new JsonPath(getResponse);
+        
+        // Extract the "name" from the response (there is no "first_name" field)
+        String name = js2.getString("name");
+        System.out.println("Name from response: " + name);
+        
+        // Assert that the name is "morpheus" (as per the input)
+        assertEquals(name, "morpheus", "MyMessage2");
+    }
+}
